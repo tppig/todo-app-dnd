@@ -1,17 +1,19 @@
 services:
   todo-app:
     image: node:18-alpine
-    command: sh -c "cd server && npm start"
     ports:
       - 3000:3000
+      - 3001:3001
     working_dir: /app
     volumes:
       - ./:/app
+    command: sh -c "cd server; npm start & cd ../client; npm start"
     environment:
       MYSQL_HOST: mysql
       MYSQL_USER: root
       MYSQL_PASSWORD: secret
       MYSQL_DB: todos
+      NODE_OPTIONS: --openssl-legacy-provider
   
   mysql:
     image: mysql:8.0
