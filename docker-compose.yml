@@ -23,6 +23,7 @@ services:
     command: sh -c "npm start"
     environment:
       NODE_OPTIONS: --openssl-legacy-provider
+      CHOKIDAR_USEPOLLING: 'true'
   
   mysql:
     image: mysql:8.0
