@@ -8,7 +8,9 @@ import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
 import InputGroup from 'react-bootstrap/InputGroup';
 import Form from 'react-bootstrap/Form';
-
+import { DragDropContext, Draggable } from 'react-beautiful-dnd';
+import styled from 'styled-components';
+import { StrictModeDroppable } from './StrictModeDroppable.tsx';
 const backend_url = 'http://localhost:3001'
 
 function App() {
@@ -22,6 +24,8 @@ function App() {
     </Container>
   );
 }
+
+const ItemList = styled.div``;
 
 function TodoListCard() {
 
@@ -65,25 +69,40 @@ function TodoListCard() {
 
   if (items === null) return 'Loading...';
 
-  const onDragEnd = result => {
+  const onDragEnd_ = result => {
     // TODO
   };
 
   return (
-    <React.Fragment>
-      <AddItemForm onNewItem={onNewItem} />
-      {items.length === 0 && (
-        <p className="text-center">You have no todo items yet! Add one above!</p>
-      )}
-      {items.map(item => (
-        <ItemDisplay
-          item={item}
-          key={item.id}
-          onItemUpdate={onItemUpdate}
-          onItemRemoval={onItemRemoval}
-        />
-      ))}
-    </React.Fragment>
+    <DragDropContext onDragEnd={onDragEnd_}>
+      <React.Fragment>
+        <AddItemForm onNewItem={onNewItem} />
+        {items.length === 0 && (
+          <p className="text-center">You have no todo items yet! Add one above!</p>
+        )}
+        <StrictModeDroppable droppableId='0'>
+          {
+            (provided) => (
+              <ItemList
+                ref={provided.innerRef}
+                {...provided.droppableProps}
+              >
+                {items.map((item, index) => (
+                  <ItemDisplay
+                    key={item.id}
+                    item={item}
+                    index={index}
+                    onItemUpdate={onItemUpdate}
+                    onItemRemoval={onItemRemoval}
+                  />
+                ))}
+                {provided.placeholder}
+              </ItemList>
+            )
+          }
+        </StrictModeDroppable>
+      </React.Fragment>
+    </DragDropContext>
   );
 }
 
@@ -131,7 +150,7 @@ function AddItemForm({ onNewItem }) {
   );
 }
 
-function ItemDisplay({ item, onItemUpdate, onItemRemoval }) {
+function ItemDisplay({ item, index, onItemUpdate, onItemRemoval }) {
 
   const toggleCompletion = () => {
     fetch(backend_url + `/items/${item.id}`, {
@@ -153,41 +172,52 @@ function ItemDisplay({ item, onItemUpdate, onItemRemoval }) {
   };
 
   return (
-    <Container fluid className={`item ${item.completed && 'completed'}`}>
-      <Row>
-        <Col xs={1} className="text-center">
-          <Button
-            className="toggles"
-            size="sm"
-            variant="link"
-            onClick={toggleCompletion}
-            aria-label={
-              item.completed
-                ? 'Mark item as incomplete'
-                : 'Mark item as complete'
-            }
+    <Draggable draggableId={item.id} index={index}>
+      {
+        (provided) => (
+          <Container fluid className={`item ${item.completed && 'completed'}`}
+            {...provided.draggableProps}
+            {...provided.dragHandleProps}
+            ref={provided.innerRef}
           >
-            <i
-              className={`fa ${item.completed ? 'fa-check-square-o' : 'fa-square-o'
-                }`}
-            />
-          </Button>
-        </Col>
-        <Col xs={10} className="name">
-          {item.name}
-        </Col>
-        <Col xs={1} className="text-center remove">
-          <Button
-            size="sm"
-            variant="link"
-            onClick={removeItem}
-            aria-label="Remove Item"
-          >
-            <i className="fa fa-trash text-danger" />
-          </Button>
-        </Col>
-      </Row>
-    </Container>
+            <Row>
+              <Col xs={1} className="text-center">
+                <Button
+                  className="toggles"
+                  size="sm"
+                  variant="link"
+                  onClick={toggleCompletion}
+                  aria-label={
+                    item.completed
+                      ? 'Mark item as incomplete'
+                      : 'Mark item as complete'
+                  }
+                >
+                  <i
+                    className={`fa ${item.completed ? 'fa-check-square-o' : 'fa-square-o'
+                      }`}
+                  />
+                </Button>
+              </Col>
+              <Col xs={10} className="name">
+                {item.name}
+              </Col>
+              <Col xs={1} className="text-center remove">
+                <Button
+                  size="sm"
+                  variant="link"
+                  onClick={removeItem}
+                  aria-label="Remove Item"
+                >
+                  <i className="fa fa-trash text-danger" />
+                </Button>
+              </Col>
+            </Row>
+          </Container>
+        )
+      }
+    </Draggable>
+
   );
 }
 
