@@ -30,11 +30,17 @@ const ItemList = styled.div``;
 function TodoListCard() {
 
   const [items, setItems] = React.useState(null);
+  const [itemIds, setItemIds] = React.useState(null);
+
+  function setItemAndIds(items) {
+    setItems(items);
+    setItemIds(items.map(i => i.id));
+  }
 
   React.useEffect(() => {
     fetch(backend_url + '/items')
       .then(r => r.json())
-      .then(setItems);
+      .then(setItemAndIds);
   }, []);
 
   // 让子组件只有在items发生改变时才重新渲染
@@ -69,12 +75,29 @@ function TodoListCard() {
 
   if (items === null) return 'Loading...';
 
-  const onDragEnd_ = result => {
-    // TODO
+  const onDragEnd = result => {
+    const { destination, source, draggableId } = result;
+
+    if (!destination) {
+      return;
+    }
+
+    if (
+      destination.droppableId === source.droppableId &&
+      destination.index === source.index
+    ) {
+      return;
+    }
+
+    const newItemIds = Array.from(itemIds);
+    newItemIds.splice(source.index, 1);
+    newItemIds.splice(destination.index, 0, draggableId);
+
+    setItemIds(newItemIds);
   };
 
   return (
-    <DragDropContext onDragEnd={onDragEnd_}>
+    <DragDropContext onDragEnd={onDragEnd}>
       <React.Fragment>
         <AddItemForm onNewItem={onNewItem} />
         {items.length === 0 && (
@@ -87,15 +110,18 @@ function TodoListCard() {
                 ref={provided.innerRef}
                 {...provided.droppableProps}
               >
-                {items.map((item, index) => (
-                  <ItemDisplay
-                    key={item.id}
-                    item={item}
-                    index={index}
-                    onItemUpdate={onItemUpdate}
-                    onItemRemoval={onItemRemoval}
-                  />
-                ))}
+                {itemIds.map((itemId, index) => {
+                  const order_index = items.findIndex(i => i.id === itemId);
+                  return (
+                    <ItemDisplay
+                      key={itemId}
+                      item={items[order_index]}
+                      index={index}
+                      onItemUpdate={onItemUpdate}
+                      onItemRemoval={onItemRemoval}
+                    />
+                  );
+                })}
                 {provided.placeholder}
               </ItemList>
             )
