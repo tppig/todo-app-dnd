@@ -123,9 +123,31 @@ export async function removeItem(id) {
   });
 }
 
+export async function updateItemOrder(id, pos) {
+  console.log('id:'+id+' pos:'+pos);
+  return new Promise((acc, rej) => {
+    pool.query('UPDATE todo_items SET pos = ? WHERE id = ?', [pos, id], err => {
+      console.log(err);
+      if (err) {
+        return rej(err);
+      }
+      acc();
+    });
+  });
+}
+
 export async function updateItemOrderAfter(pos) {
   return new Promise((acc, rej) => {
     pool.query('UPDATE todo_items SET pos = pos - 1 WHERE pos > ?', [pos], err => {
+      if (err) return rej(err);
+      acc();
+    });
+  });
+}
+
+export async function updateItemOrderBetween(l, r, sign) {
+  return new Promise((acc, rej) => {
+    pool.query('UPDATE todo_items SET pos = pos + ? WHERE pos >= ? AND pos <= ?', [sign, l, r], err => {
       if (err) return rej(err);
       acc();
     });

@@ -5,6 +5,7 @@ import addItem from './routes/addItem.js';
 import updateItem from './routes/updateItem.js';
 import deleteItem from './routes/deleteItem.js';
 import cors from "cors";
+import updateItemOrder from './routes/updateItemOrder.js';
 
 const app = express();
 
@@ -15,6 +16,7 @@ app.get('/items', getItems);
 app.post('/items', addItem);
 app.put('/items/:id', updateItem);
 app.delete('/items/:id', deleteItem);
+app.post('/itemsUpdateOrder', updateItemOrder);
 
 init().then(() => {
   app.listen(3001, () => console.log('Listening on port 3001'));

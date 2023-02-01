@@ -11,6 +11,7 @@ import Form from 'react-bootstrap/Form';
 import { DragDropContext, Draggable } from 'react-beautiful-dnd';
 import styled from 'styled-components';
 import { StrictModeDroppable } from './StrictModeDroppable.tsx';
+
 const backend_url = 'http://localhost:3001'
 
 function App() {
@@ -62,10 +63,8 @@ function TodoListCard() {
     // 函数：找到item，删除item
     item => {
       const index = items.findIndex(i => i.id === item.id);
-      console.log('A');
-      console.log(index);
-      console.log([...items.slice(0, index), ...items.slice(index + 1).map(i => Object.assign({}, i, {pos: i.pos - 1}))]);
-      setItems([...items.slice(0, index), ...items.slice(index + 1).map(i => Object.assign({}, i, {pos: i.pos - 1}))]);
+      const newItems = [...items.slice(0, index), ...items.slice(index + 1)];
+      setItems(newItems.map(i => Object.assign({}, i, {pos: (i.pos > item.pos ? i.pos - 1 : i.pos)})));
     },
     [items],
   );
@@ -85,6 +84,14 @@ function TodoListCard() {
     ) {
       return;
     }
+
+    fetch(backend_url + '/itemsUpdateOrder', {
+      method: 'POST',
+      body: JSON.stringify({ itemId: draggableId, src: source.index, dest: destination.index }),
+      headers: { 'Content-Type': 'application/json' },
+    })
+      .then(r => r.json())
+      .then(setItems);
   };
 
   return (
@@ -102,19 +109,18 @@ function TodoListCard() {
                 {...provided.droppableProps}
               >
                 {
-                 [...Array(items.length).keys()].map((index) => {
-                  console.log(index);
-                  const item = items[items.findIndex(i => i.pos === index)];
-                  return (
-                    <ItemDisplay
-                      key={item.id}
-                      item={item}
-                      index={index}
-                      onItemUpdate={onItemUpdate}
-                      onItemRemoval={onItemRemoval}
-                    />
-                  );
-                })}
+                  [...Array(items.length).keys()].map((index) => {
+                    const item = items[items.findIndex(i => i.pos === index)];
+                    return (
+                      <ItemDisplay
+                        key={item.id}
+                        item={item}
+                        index={index}
+                        onItemUpdate={onItemUpdate}
+                        onItemRemoval={onItemRemoval}
+                      />
+                    );
+                  })}
                 {provided.placeholder}
               </ItemList>
             )
