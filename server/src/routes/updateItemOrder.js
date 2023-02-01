@@ -5,7 +5,7 @@ export default async (req, res) => {
   const itemId = req.body.itemId;
   const src = req.body.src;
   const dest = req.body.dest;
-  console.log(req.body);
+
   if (src > dest) {
     await updateItemOrderBetween(dest, src - 1, 1);
   } else {
