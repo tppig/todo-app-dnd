@@ -24,6 +24,7 @@ services:
     environment:
       NODE_OPTIONS: --openssl-legacy-provider
       CHOKIDAR_USEPOLLING: 'true'
+      WATCHPACK_POLLING: 'true'
   
   mysql:
     image: mysql:8.0

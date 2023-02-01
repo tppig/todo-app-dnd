@@ -30,17 +30,11 @@ const ItemList = styled.div``;
 function TodoListCard() {
 
   const [items, setItems] = React.useState(null);
-  const [itemIds, setItemIds] = React.useState(null);
-
-  function setItemAndIds(items) {
-    setItems(items);
-    setItemIds(items.map(i => i.id));
-  }
 
   React.useEffect(() => {
     fetch(backend_url + '/items')
       .then(r => r.json())
-      .then(setItemAndIds);
+      .then(setItems);
   }, []);
 
   // 让子组件只有在items发生改变时才重新渲染
@@ -68,7 +62,10 @@ function TodoListCard() {
     // 函数：找到item，删除item
     item => {
       const index = items.findIndex(i => i.id === item.id);
-      setItems([...items.slice(0, index), ...items.slice(index + 1)]);
+      console.log('A');
+      console.log(index);
+      console.log([...items.slice(0, index), ...items.slice(index + 1).map(i => Object.assign({}, i, {pos: i.pos - 1}))]);
+      setItems([...items.slice(0, index), ...items.slice(index + 1).map(i => Object.assign({}, i, {pos: i.pos - 1}))]);
     },
     [items],
   );
@@ -88,18 +85,12 @@ function TodoListCard() {
     ) {
       return;
     }
-
-    const newItemIds = Array.from(itemIds);
-    newItemIds.splice(source.index, 1);
-    newItemIds.splice(destination.index, 0, draggableId);
-
-    setItemIds(newItemIds);
   };
 
   return (
     <DragDropContext onDragEnd={onDragEnd}>
       <React.Fragment>
-        <AddItemForm onNewItem={onNewItem} />
+        <AddItemForm onNewItem={onNewItem} pos={items.length} />
         {items.length === 0 && (
           <p className="text-center">You have no todo items yet! Add one above!</p>
         )}
@@ -110,12 +101,14 @@ function TodoListCard() {
                 ref={provided.innerRef}
                 {...provided.droppableProps}
               >
-                {itemIds.map((itemId, index) => {
-                  const order_index = items.findIndex(i => i.id === itemId);
+                {
+                 [...Array(items.length).keys()].map((index) => {
+                  console.log(index);
+                  const item = items[items.findIndex(i => i.pos === index)];
                   return (
                     <ItemDisplay
-                      key={itemId}
-                      item={items[order_index]}
+                      key={item.id}
+                      item={item}
                       index={index}
                       onItemUpdate={onItemUpdate}
                       onItemRemoval={onItemRemoval}
@@ -132,7 +125,7 @@ function TodoListCard() {
   );
 }
 
-function AddItemForm({ onNewItem }) {
+function AddItemForm({ onNewItem, pos }) {
 
   const [newItem, setNewItem] = React.useState('');
   const [submitting, setSubmitting] = React.useState(false);
@@ -142,7 +135,7 @@ function AddItemForm({ onNewItem }) {
     setSubmitting(true);
     fetch(backend_url + '/items', {
       method: 'POST',
-      body: JSON.stringify({ name: newItem }),
+      body: JSON.stringify({ name: newItem, pos: pos }),
       headers: { 'Content-Type': 'application/json' },
     })
       .then(r => r.json())

@@ -6,6 +6,7 @@ export default async (req, res) => {
     id: uuid(),
     name: req.body.name,
     completed: false,
+    pos: req.body.pos,
   };
   await storeItem(item);
   res.send(item);
