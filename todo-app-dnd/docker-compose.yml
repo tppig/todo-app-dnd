@@ -9,7 +9,7 @@ services:
       MYSQL_DATABASE: todos
 
   todo-app-dnd-server:
-    image: todo-app-dnd-server
+    image: oos1111/todo-app-dnd-server:1.0
     ports:
       - 3001:3001
     environment:
@@ -19,7 +19,7 @@ services:
       MYSQL_DB: todos
   
   todo-app-dnd-client:
-    image: todo-app-dnd-client
+    image: oos1111/todo-app-dnd-client:1.0
     ports:
       - 3000:3000
   
